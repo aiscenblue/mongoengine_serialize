@@ -37,4 +37,10 @@ UserSerializer(Serialize):
      def set_attributes(self, data):
         super().set_attributes(data)
         data['avatar_url'] = "http://" + data['avatar_ur']
+
+
+
+user = Users.objects(first_name='Hello').first()
+serialized_user = UserSerializer(user).to_json()
+
 ```
