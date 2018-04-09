@@ -27,6 +27,9 @@ class Serialize:
         else:
             return key, val
 
+    def set_attributes(self, data):
+        self.__serialize(data)
+
     def __serialize(self, data):
         doc_mongo = self.__doc_to_mongo(data)
         if isinstance(doc_mongo, dict):
@@ -36,9 +39,6 @@ class Serialize:
             return self.to_json()
         else:
             raise ValueError('Cannot serialize object.')
-
-    def set_attributes(self, data):
-        self.__serialize(data)
 
     def to_json(self):
         return self.__dict__
