@@ -44,3 +44,10 @@ user = Users.objects(first_name='Hello').first()
 serialized_user = UserSerializer(user).to_json()
 
 ```
+
+#### Exclude attributes
+> exclude_attribute is called before set_attributes
+> it helps on filtering your dictionary before returning
+```
+Serialize(user).exclude_attributes('password', 'created_at').to_json()
+```

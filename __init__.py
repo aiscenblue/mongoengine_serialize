@@ -11,6 +11,12 @@ class Serialize:
         self.set_attributes(data)
         return self
 
+    def exclude_attributes(self, *attributes):
+        for attribute in attributes:
+            if hasattr(self, attribute):
+                delattr(self, attribute)
+        return self
+
     @staticmethod
     def __doc_to_mongo(doc):
         if isinstance(doc, BaseDocument):
@@ -42,4 +48,3 @@ class Serialize:
 
     def to_json(self):
         return self.__dict__
-
