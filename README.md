@@ -7,6 +7,11 @@ serialize ObjectIds and datetime format
 > request or put a suggestion comment inside 
 > issues tab
 
+## Installation
+```
+pip install mongoengine-serialize
+```
+
 # Example:
 
 #### Your mongoengine schema

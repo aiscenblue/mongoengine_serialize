@@ -1,15 +1,15 @@
 from distutils.core import setup
 
 setup(
-    name='mongoengine-serializer',
+    name='mongoengine-serialize',
     version='0.0.1',
     description='Mongoengine serializer',
     author='Jeffrey Marvin Forones',
     author_email='aiscenblue@gmail.com',
     license='MIT',
-    url='https://github.com/aiscenblue/mongoengine_serializer',
-    packages=['flask_app_core'],
-    keywords=['serializer', 'mongoengine', 'mongoengine_serializer'],  # arbitrary keywords
+    url='https://github.com/aiscenblue/mongoengine_serialize',
+    packages=['mongoengine_serialize'],
+    keywords=['serializer', 'mongoengine', 'mongoengine_serialize'],  # arbitrary keywords
     install_requires=['mongoengine'],
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -23,6 +23,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4'
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.6',
     ]
 )
