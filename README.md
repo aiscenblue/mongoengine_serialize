@@ -9,7 +9,7 @@ serialize ObjectIds and datetime format
 
 ## Installation
 ```
-pip install mongoengine-serialize
+pip install mongoengine_serialize
 ```
 
 # Example:
@@ -31,28 +31,32 @@ class Users(Document):
 from payload_serializer import Serialize
 
 user = Users.objects(first_name='Hello').first()
-serialized_user = Serialize(user).to_json()
+serialized_user = Serialize(user).jsonify()
 ```
 
 #### Changing data attributes
-> Alter data by using set_attributes function
+> Alter data by using alter_after_serialize_attributes function
+
 ```
 UserSerializer(Serialize):
 
-     def set_attributes(self, data):
-        super().set_attributes(data)
+     def alter_after_serialize_attributes(self, collection):
         data['avatar_url'] = "http://" + data['avatar_ur']
 
 
 
 user = Users.objects(first_name='Hello').first()
-serialized_user = UserSerializer(user).to_json()
+serialized_user = UserSerializer(user).jsonify()
 
+```
+```
+Note: serializer is using to_mong() in mongoengine which causes unable to populate ObjectId(), populate feature is not yet supported.
+as an alternative using the alter_after_serialize_attributes to check the key and query a child collection using the id
 ```
 
 #### Exclude attributes
 > exclude_attribute is called before set_attributes
 > it helps on filtering your dictionary before returning
 ```
-Serialize(user).exclude_attributes('password', 'created_at').to_json()
+Serialize(user).exclude('password', 'created_at').jsonify()
 ```
