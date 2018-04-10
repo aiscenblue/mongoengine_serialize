@@ -2,8 +2,6 @@ from mongoengine.base import BaseDocument
 from bson.objectid import ObjectId
 from datetime import datetime
 
-# TODO :: serialize lists type, nested serialization
-
 
 class JsonSerialized:
 
