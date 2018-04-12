@@ -1,6 +1,7 @@
 from mongoengine.base import BaseDocument
 from bson.objectid import ObjectId
 from datetime import datetime
+from mongoengine.queryset.queryset import QuerySet
 
 
 class JsonSerialized:
@@ -37,17 +38,23 @@ class Serialize:
         if isinstance(collections, list):
             col_list = list()
             for collection in collections:
-                if isinstance(collection, list):
-                    col_list.append(self.__serialize(collection))
-                else:
-                    col_list.append(self.__serialize(collection))
+                col_list.append(self.__serialize(self.__resurse_collections(collection)))
             return col_list
         else:
             return self.__serialize(collections)
 
-    @staticmethod
-    def __serialize_collection(collection):
-        if isinstance(collection, BaseDocument):
+    def __serialize_collection(self, collection):
+        if isinstance(collection, list):
+            li_array = []
+            for _ in collection:
+                li_array.append(self.__serialize_collection(_))
+            return li_array
+        elif isinstance(collection, QuerySet):
+            q_arr = []
+            for q in collection:
+                q_arr.append(self.__serialize_collection(q))
+            return q_arr
+        elif isinstance(collection, BaseDocument):
             return collection.to_mongo()
         elif isinstance(collection, JsonSerialized):
             return collection
@@ -72,8 +79,12 @@ class Serialize:
                 if isinstance(value, list):
                     val_list = list()
                     for index, _ in enumerate(value):
-                        raw_collection = getattr(self.__raw_collections, key)
-                        val_list.append(Serialize(raw_collection[index]).jsonify())
+                        print(type(_))
+                        if isinstance(_, ObjectId) or isinstance(_, dict) or isinstance(_, list):
+                            raw_collection = getattr(self.__raw_collections, key)
+                            val_list.append(Serialize(raw_collection[index]).jsonify())
+                        else:
+                            val_list.append(_)
                     setattr(json_serialized, key, val_list)
                 else:
                     serialized_attribute = self.__attribute_serialize(key, value)
@@ -123,9 +134,11 @@ class Serialize:
     def jsonify(self):
         collections = self.__collections
         if isinstance(collections, list):
+            list_col = list()
             for collection in collections:
-                return self.__dict_jsonify(collection)
+                list_col.append(self.__dict_jsonify(collection))
+            return list_col
         elif isinstance(collections, dict):
             return self.__dict_jsonify(collections)
         else:
-            return collections
+            return self.__dict_jsonify(collections)
