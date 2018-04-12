@@ -85,7 +85,7 @@ class Serialize:
                     setattr(json_serialized, new_key, new_value)
             return json_serialized
         else:
-            raise ValueError('Cannot serialize object.')
+            return collection
 
     """ 
         alter each collection before returning
@@ -114,11 +114,18 @@ class Serialize:
     def raw(self):
         return self.__raw_collections
 
+    def __dict_jsonify(self, collection):
+        if isinstance(collection, JsonSerialized):
+            return collection.to_json()
+        else:
+            return collection
+
     def jsonify(self):
         collections = self.__collections
         if isinstance(collections, list):
             for collection in collections:
-                collection.to_json()
-            return collections
+                return self.__dict_jsonify(collection)
+        elif isinstance(collections, dict):
+            return self.__dict_jsonify(collections)
         else:
-            return collections.to_json()
+            return collections
