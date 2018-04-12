@@ -50,6 +50,8 @@ user = Users.objects(first_name='Hello').first()
 serialized_user = UserSerializer(user).jsonify()
 
 ```
+> alter_after_serialize_attributes is called each attribute of the collection.
+> the best practice to use it is when you needed a 2nd to 3rd to deapest tier of ObjectId connected to your parent collection.
 
 #### Exclude attributes
 > exclude_attribute is called before set_attributes
