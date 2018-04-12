@@ -23,6 +23,11 @@ class Users(Document):
     email = StringField(required=True)
     password = StringField(required=True)
     created_at = DateTimeField(default=utc_now)
+    posts = ReferenceField('Posts')
+
+class Posts(Document):
+    content = StringField(required=True)
+    comments = ListField(ReferenceField('Comments'))
 ```
 
 #### Create a Users serializer that extends Serialize class from payload_serializer
@@ -43,7 +48,8 @@ UserSerializer(Serialize):
     def alter_after_serialize_attributes(self, collection):
         if "avatar_url" in collection:
             collection['avatar_url'] = "http://" + collection['avatar_ur']
-
+        elif "posts" in collection:
+            collection["posts"]["comments"] = Serialize(collection["posts"]["comments"]).jsonify()
 
 
 user = Users.objects(first_name='Hello').first()
