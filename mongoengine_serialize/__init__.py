@@ -79,7 +79,6 @@ class Serialize:
                 if isinstance(value, list):
                     val_list = list()
                     for index, _ in enumerate(value):
-                        print(type(_))
                         if isinstance(_, ObjectId) or isinstance(_, dict) or isinstance(_, list):
                             raw_collection = getattr(self.__raw_collections, key)
                             val_list.append(Serialize(raw_collection[index]).jsonify())
