@@ -88,10 +88,7 @@ class Serialize:
                 else:
                     serialized_attribute = self.__attribute_serialize(key, value)
                     altered_serialized = self.alter_after_serialize_attributes(serialized_attribute)
-                    if not altered_serialized:
-                        raise ValueError(
-                            self.alter_after_serialize_attributes.__name__ + "should return a non null value")
-                    new_key, new_value = altered_serialized
+                    new_key, new_value = altered_serialized if altered_serialized else serialized_attribute
                     setattr(json_serialized, new_key, new_value)
             return json_serialized
         else:
