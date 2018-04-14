@@ -25,74 +25,58 @@ class Serialize:
 
     def __init__(self, collections):
         self.__raw_collections = collections
-        serialized_collection = self.__serialize_collection(collections)
-        self.__collections = self.__resurse_collections(serialized_collection)
+        self.__collections = self.__serialize_collection(collections)
+
 
     def __call__(self, collections):
         self.__raw_collections = collections
         serialized_collection = self.__serialize_collection(collections)
-        self.__collections = self.__resurse_collections(serialized_collection)
         return self
 
-    def __resurse_collections(self, collections):
-        if isinstance(collections, list):
-            col_list = list()
-            for collection in collections:
-                col_list.append(self.__serialize(self.__resurse_collections(collection)))
-            return col_list
-        else:
-            return self.__serialize(collections)
-
-    def __serialize_collection(self, collection):
-        if isinstance(collection, list):
-            li_array = []
-            for _ in collection:
-                li_array.append(self.__serialize_collection(_))
-            return li_array
-        elif isinstance(collection, QuerySet):
-            q_arr = []
-            for q in collection:
-                q_arr.append(self.__serialize_collection(q))
-            return q_arr
-        elif isinstance(collection, BaseDocument):
-            return collection.to_mongo()
+    def __serialize_type_of(self, collection):
+        if isinstance(collection, BaseDocument):
+            return self.__filter_serialize(collection.to_mongo())
         elif isinstance(collection, JsonSerialized):
             return collection
         else:
             return collection
 
-    def __filter_set_attribute(self, collection):
-        collections = self.__resurse_collections(collection)
-        if isinstance(collections, list):
-            col = list()
-            for collection in collections:
-                col.append(self.__serialize(collection))
-                collections = col
+    def __serialize_collection(self, collections):
+        if isinstance(collections, QuerySet) or isinstance(collections, list):
+            return [self.__serialize_collection(_) for _ in collections]
         else:
-            collections = self.__serialize(collections)
-        return collections
+            return self.__serialize_type_of(collections)
 
-    def __serialize(self, collection):
-        if isinstance(collection, dict):
-            json_serialized = JsonSerialized()
-            for key, value in collection.items():
-                if isinstance(value, list):
-                    val_list = list()
-                    for index, _ in enumerate(value):
-                        if isinstance(_, ObjectId) or isinstance(_, dict) or isinstance(_, list):
-                            raw_collection = getattr(self.__raw_collections, key)
-                            val_list.append(Serialize(raw_collection[index]).jsonify())
-                        else:
-                            val_list.append(_)
-                    setattr(json_serialized, key, val_list)
-                else:
-                    serialized_attribute = self.__attribute_serialize(key, value)
-                    altered_serialized = self.alter_after_serialize_attributes(serialized_attribute)
-                    new_key, new_value = altered_serialized if altered_serialized else serialized_attribute
-                    setattr(json_serialized, new_key, new_value)
-            return json_serialized
+    def __get_raw_name(self, name):
+        if name == "id":
+            return "_id"
         else:
-            return collection
+            return name
+
+    def __filter_serialize(self, collections):
+        if isinstance(collections, dict):
+            new_collection = dict()
+            for index, collection in enumerate(collections.items()):
+                key, value = collection
+                raw_collection = getattr(self.__raw_collections, self.__get_raw_name(key), collection)
+                if isinstance(value, list) or isinstance(value, dict):
+                    re_serialize = Serialize(raw_collection).jsonify()
+                    if isinstance(re_serialize, tuple):
+                        new_key, new_value = Serialize(raw_collection).jsonify()
+                        new_collection.update(dict.fromkeys((new_key,), new_value))
+                    else:
+                        new_collection.update(dict.fromkeys((key, ), re_serialize))
+                else:
+                    new_collection.update(self.__serialize(key, value))
+            return new_collection
+        else:
+            return collections
+
+    def __serialize(self, key, value):
+        serialized_attribute = self.__attribute_serialize(key, value)
+        altered_serialized = self.alter_after_serialize_attributes(serialized_attribute)
+        new_key, new_value = altered_serialized if altered_serialized else serialized_attribute
+        return JsonSerialized(**dict.fromkeys((new_key,), new_value)).to_json()
 
     """ 
         alter each collection before returning
@@ -107,21 +91,25 @@ class Serialize:
         return self
 
     @staticmethod
-    def __attribute_serialize(key, val):
+    def __to_string_attribute(attr):
+        return str(attr)
+
+    def __attribute_serialize(self, key, val):
         if isinstance(val, ObjectId):
             if key == "_id":
-                return "id", str(val)
+                return "id", self.__to_string_attribute(val)
             else:
-                return key, str(val)
+                return key, self.__to_string_attribute(val)
         elif isinstance(val, datetime):
-            return key, str(val)
+            return key, self.__to_string_attribute(val)
         else:
             return key, val
 
     def raw(self):
         return self.__raw_collections
 
-    def __dict_jsonify(self, collection):
+    @staticmethod
+    def __dict_jsonify(collection):
         if isinstance(collection, JsonSerialized):
             return collection.to_json()
         else:
@@ -130,10 +118,7 @@ class Serialize:
     def jsonify(self):
         collections = self.__collections
         if isinstance(collections, list):
-            list_col = list()
-            for collection in collections:
-                list_col.append(self.__dict_jsonify(collection))
-            return list_col
+            return [self.__dict_jsonify(_) for _ in collections]
         elif isinstance(collections, dict):
             return self.__dict_jsonify(collections)
         else:
