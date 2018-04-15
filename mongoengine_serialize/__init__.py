@@ -85,23 +85,26 @@ class Serialize:
         return collection
 
     def exclude(self, *attributes):
-        for attribute in attributes:
-            collections = self.__collections
-            if isinstance(collections, list):
-                self.__collections = [self.__remove_serialized_attribute(_, *attributes) for _ in collections]
-            else:
-                self.__collections = self.__remove_serialized_attribute(self.__collections, *attributes)
+        self.__collections = self.__extract_list_to_exclude(self.__collections, *attributes)
         return self
 
-    def __remove_serialized_attribute(self, collection, *attributes):
-        _collection = collection
-        if isinstance(_collection, JsonSerialized):
-            return JsonSerialized.exclude_attributes(*attributes)
+    def __extract_list_to_exclude(self, items, *to_exclude):
+        if isinstance(items, dict):
+            _new_dict = dict()
+            for item in items.items():
+                k, v = item
+                if isinstance(v, list):
+                    serialized_list = self.__extract_list_to_exclude(v, *to_exclude)
+                    _new_dict.update(dict.fromkeys((k,), serialized_list))
+                else:
+                    _new_dict.update(dict.fromkeys((k,), v))
+            serialized = JsonSerialized(**_new_dict)
+            serialized.exclude_attributes(*to_exclude)
+            return serialized.to_json()
+        if isinstance(items, list):
+            return [self.__extract_list_to_exclude(_, *to_exclude) for _ in items]
         else:
-            for attribute in attributes:
-                if attribute in _collection:
-                    del _collection[attribute]
-            return _collection
+            return items
 
     @staticmethod
     def __to_string_attribute(attr):
