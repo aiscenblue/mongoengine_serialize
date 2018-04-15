@@ -30,10 +30,7 @@ class Posts(Document):
     comments = ListField(ReferenceField('Comments'))
 ```
 
-#### Create a Users serializer that extends Serialize class from payload_serializer
-
-```
-from payload_serializer import Serialize
+from mongoengine_serialize import Serialize
 
 user = Users.objects(first_name='Hello').first()
 serialized_user = Serialize(user).jsonify()
@@ -43,6 +40,9 @@ serialized_user = Serialize(user).jsonify()
 > Alter data by using alter_after_serialize_attributes function
 
 ```
+from mongoengine_serialize import Serialize
+
+
 UserSerializer(Serialize):
 
     def alter_after_serialize_attributes(self, collection):
