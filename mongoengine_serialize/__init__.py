@@ -30,7 +30,7 @@ class Serialize:
 
     def __call__(self, collections):
         self.__raw_collections = collections
-        serialized_collection = self.__serialize_collection(collections)
+        self.__collections = self.__serialize_collection(collections)
         return self
 
     def __serialize_type_of(self, collection):
@@ -47,7 +47,8 @@ class Serialize:
         else:
             return self.__serialize_type_of(collections)
 
-    def __get_raw_name(self, name):
+    @staticmethod
+    def __get_raw_name(name):
         if name == "id":
             return "_id"
         else:
