@@ -1,4 +1,5 @@
 from mongoengine.base import BaseDocument
+from mongoengine.base.datastructures import LazyReference
 from bson.objectid import ObjectId
 from datetime import datetime
 from mongoengine.queryset.queryset import QuerySet
@@ -36,6 +37,9 @@ class Serialize:
     def __serialize_type_of(self, collection):
         if isinstance(collection, BaseDocument):
             return self.__filter_serialize(collection.to_mongo(), collection)
+        elif isinstance(collection, LazyReference):
+            raw = collection.fetch()
+            return self.__filter_serialize(raw.to_mongo(), raw)
         elif isinstance(collection, JsonSerialized):
             return collection
         else:
@@ -60,14 +64,19 @@ class Serialize:
             for index, collection in enumerate(collections.items()):
                 key, value = collection
                 raw_collection = getattr(raw, self.__get_raw_name(key), collection)
-                if isinstance(value, list) or isinstance(value, dict):
-                    re_serialize = Serialize(raw_collection).jsonify()
-                    new_collection.update(dict.fromkeys((key,), re_serialize))
+                if isinstance(value, list):
+                    serialized_list = list()
+                    for _ in value:
+                        serialized_list.append(self.__filter_serialize(_, raw_collection))
+                    new_collection.update(dict.fromkeys((key,), serialized_list))
+                elif isinstance(value, dict):
+                    serialized_dict = self.__filter_serialize(collection, raw_collection)
+                    new_collection.update(dict.fromkeys((key,), serialized_dict))
                 else:
                     new_collection.update(self.__serialize(key, value, raw_collection))
             return new_collection
         else:
-            return collections
+            return self.__to_string_attribute(collections)
 
     def __serialize(self, key, value, raw):
         serialized_attribute = self.__attribute_serialize(key, value)
