@@ -65,15 +65,16 @@ class Serialize:
                 key, value = collection
                 raw_collection = getattr(raw, self.__get_raw_name(key), collection)
                 if isinstance(value, list):
-                    serialized_list = list()
-                    for _ in value:
-                        serialized_list.append(self.__filter_serialize(_, raw_collection))
-                    new_collection.update(dict.fromkeys((key,), serialized_list))
+                    serialized_list = [self.__filter_serialize(_, raw_collection) for _ in value]
+                    new_collection.update(self.__serialize(key, serialized_list, raw_collection))
                 elif isinstance(value, dict):
                     serialized_dict = self.__filter_serialize(collection, raw_collection)
-                    new_collection.update(dict.fromkeys((key,), serialized_dict))
+                    new_collection.update(self.__serialize(key, serialized_dict, raw_collection))
                 else:
-                    new_collection.update(self.__serialize(key, value, raw_collection))
+                    if isinstance(value, ObjectId) and ("id" not in key or "_id" not in key):
+                        new_collection.update(self.__serialize(key, self.__serialize_type_of(raw_collection), raw_collection))
+                    else:
+                        new_collection.update(self.__serialize(key, value, raw_collection))
             return new_collection
         else:
             return self.__to_string_attribute(collections)
