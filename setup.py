@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='mongoengine-serialize',
-    version='1.2.1',
+    version='1.2.2',
     description='Mongoengine serializer',
     author='Jeffrey Marvin Forones',
     author_email='aiscenblue@gmail.com',

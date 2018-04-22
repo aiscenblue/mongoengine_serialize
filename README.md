@@ -45,11 +45,12 @@ from mongoengine_serialize import Serialize
 
 UserSerializer(Serialize):
 
-    def alter_after_serialize_attributes(self, collection):
-        if "avatar_url" in collection:
-            collection['avatar_url'] = "http://" + collection['avatar_ur']
+    def alter_after_serialize_attributes(self, serialized, raw):
+        if "avatar_url" in serialized:
+            serialized['avatar_url'] = "http://" + serialized['avatar_ur']
         elif "posts" in collection:
-            collection["posts"]["comments"] = Serialize(collection["posts"]["comments"]).jsonify()
+            serialized["posts"] = Serialize(raw).jsonify()
+        return serialized
 
 
 user = Users.objects(first_name='Hello').first()
