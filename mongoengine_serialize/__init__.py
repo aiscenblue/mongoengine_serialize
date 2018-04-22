@@ -62,11 +62,7 @@ class Serialize:
                 raw_collection = getattr(raw, self.__get_raw_name(key), collection)
                 if isinstance(value, list) or isinstance(value, dict):
                     re_serialize = Serialize(raw_collection).jsonify()
-                    if isinstance(re_serialize, tuple):
-                        new_key, new_value = Serialize(raw_collection).jsonify()
-                        new_collection.update(dict.fromkeys((new_key,), new_value))
-                    else:
-                        new_collection.update(dict.fromkeys((key, ), re_serialize))
+                    new_collection.update(dict.fromkeys((key,), re_serialize))
                 else:
                     new_collection.update(self.__serialize(key, value, raw_collection))
             return new_collection
