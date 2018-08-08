@@ -1,5 +1,4 @@
-from bson import ObjectId
-
+from bson.objectid import ObjectId
 from mongoengine_serialize import Serialize
 
 collection = dict({
