@@ -1,3 +1,3 @@
-from mongoengine_serialize.serializer import Serialize
+from .serializer import Serialize
 
 __all__ = ["Serialize"]
