@@ -1,6 +1,8 @@
 # mongoengine_serializer
 serialize mongoengine documents
 
+[![Build Status](https://travis-ci.org/aiscenblue/mongoengine_serialize.svg?branch=master)](https://travis-ci.org/aiscenblue/mongoengine_serialize)
+
 ### Current Support
 serialize ObjectIds and datetime format
 > if you want to improve just create a pull 
