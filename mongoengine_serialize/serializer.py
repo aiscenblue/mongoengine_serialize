@@ -1,8 +1,8 @@
 from mongoengine.base import BaseDocument
 from mongoengine.base.datastructures import LazyReference
-from mongoengine.queryset.queryset import QuerySet
 from bson.objectid import ObjectId
 from datetime import datetime
+from mongoengine.queryset.queryset import QuerySet
 
 
 class JsonSerialized:
@@ -28,6 +28,7 @@ class Serialize:
         self.__raw_collections = collections
         self.__collections = self.__serialize_collection(collections)
 
+
     def __call__(self, collections):
         self.__raw_collections = collections
         self.__collections = self.__serialize_collection(collections)
@@ -35,20 +36,21 @@ class Serialize:
 
     def __serialize_type_of(self, collection):
         if isinstance(collection, BaseDocument):
-            return self.__filter_serialize(collection.to_mongo(), collection)
+            return collection.to_mongo(), collection
         elif isinstance(collection, LazyReference):
             raw = collection.fetch()
-            return self.__filter_serialize(raw.to_mongo(), raw)
+            return raw.to_mongo(), raw
         elif isinstance(collection, JsonSerialized):
-            return collection
+            return collection, None
         else:
-            return collection
+            return collection, None
 
     def __serialize_collection(self, collections):
         if isinstance(collections, QuerySet) or isinstance(collections, list):
             return [self.__serialize_collection(_) for _ in collections]
         else:
-            return self.__serialize_type_of(collections)
+            type_of_mongo, type_of_raw = self.__serialize_type_of(collections)
+            return self.__filter_serialize(type_of_mongo, type_of_raw)
 
     @staticmethod
     def __get_raw_name(name):
@@ -64,17 +66,24 @@ class Serialize:
                 key, value = collection
                 raw_collection = getattr(raw, self.__get_raw_name(key), collection)
                 if isinstance(value, list):
-                    serialized_list = [self.__filter_serialize(_, raw_collection) for _ in value]
+                    serialized_list = list()
+                    for raw_col_item in raw_collection:
+                        type_off_mongo, type_off_raw = self.__serialize_type_of(raw_col_item)
+                        filtered = self.__filter_serialize(type_off_mongo, type_off_raw)
+                        serialized_list.append(filtered)
                     new_collection.update(self.__serialize(key, serialized_list, raw_collection))
                 elif isinstance(value, dict):
                     serialized_dict = self.__filter_serialize(collection, raw_collection)
                     new_collection.update(self.__serialize(key, serialized_dict, raw_collection))
-                else:
-                    if isinstance(value, ObjectId) and ("id" not in key or "_id" not in key):
-                        new_collection.update(
-                            self.__serialize(key, self.__serialize_type_of(raw_collection), raw_collection))
+                elif isinstance(value, ObjectId):
+                    if "id" in collection or "_id" in collection:
+                        new_key, new_value = self.__attribute_serialize(key, value)
+                        new_collection.update(self.__serialize(new_key, new_value, raw_collection))
                     else:
-                        new_collection.update(self.__serialize(key, value, raw_collection))
+                        print(self.__serialize_collection(raw_collection))
+                        # new_collection.update(self.__serialize(new_key, new_value, type_off_raw))
+                else:
+                    new_collection.update(self.__serialize(key, value, raw_collection))
             return new_collection
         else:
             return self.__to_string_attribute(collections)

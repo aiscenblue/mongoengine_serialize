@@ -1,5 +1,6 @@
 from bson.objectid import ObjectId
-from mongoengine_serialize import Serialize
+from . import Serialize
+from logging import warn
 
 collection = dict({
     "_id": ObjectId("553486125ed592a10c4e8e6b"),  # random object id
@@ -16,10 +17,6 @@ serialized_data = Serialize(collection).jsonify()
 
 def test_equal_to_expected():
     assert serialized_data == expected_collection
-
-
-def test_should_not_has__id_key():
-    assert not hasattr(serialized_data, '_id')
 
 
 def test_id_should_be_string():
