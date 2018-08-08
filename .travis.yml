@@ -3,7 +3,7 @@ python:
   - "3.6"
 # command to install dependencies
 install:
-  - pip install -r test_requirements.txt
+  - pip3 install -r test_requirements.txt
 # command to run tests
 script:
   - pytest mongoengine_serialize/test.py # or py.test for Python versions 3.6 and above

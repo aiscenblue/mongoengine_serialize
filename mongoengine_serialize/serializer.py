@@ -1,8 +1,8 @@
 from mongoengine.base import BaseDocument
 from mongoengine.base.datastructures import LazyReference
+from mongoengine.queryset.queryset import QuerySet
 from bson.objectid import ObjectId
 from datetime import datetime
-from mongoengine.queryset.queryset import QuerySet
 
 
 class JsonSerialized:
@@ -71,7 +71,8 @@ class Serialize:
                     new_collection.update(self.__serialize(key, serialized_dict, raw_collection))
                 else:
                     if isinstance(value, ObjectId) and ("id" not in key or "_id" not in key):
-                        new_collection.update(self.__serialize(key, self.__serialize_type_of(raw_collection), raw_collection))
+                        new_collection.update(
+                            self.__serialize(key, self.__serialize_type_of(raw_collection), raw_collection))
                     else:
                         new_collection.update(self.__serialize(key, value, raw_collection))
             return new_collection
