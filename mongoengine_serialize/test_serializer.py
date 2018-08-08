@@ -19,5 +19,9 @@ def test_equal_to_expected():
     assert serialized_data == expected_collection
 
 
+def test_should_not_has__id_key():
+    assert not hasattr(serialized_data, '_id')
+
+
 def test_id_should_be_string():
     assert type(serialized_data['id']) is str
