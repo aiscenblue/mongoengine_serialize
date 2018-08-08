@@ -152,7 +152,7 @@ class Serialize:
 
     def jsonify(self):
         collections = self.__collections
-        if isinstance(collections, list):
+        if isinstance(collections, (list, tuple)):
             return [self.__dict_jsonify(_) for _ in collections]
         elif isinstance(collections, dict):
             return self.__dict_jsonify(collections)
