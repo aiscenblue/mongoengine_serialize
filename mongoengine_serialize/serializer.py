@@ -28,7 +28,6 @@ class Serialize:
         self.__raw_collections = collections
         self.__collections = self.__serialize_collection(collections)
 
-
     def __call__(self, collections):
         self.__raw_collections = collections
         self.__collections = self.__serialize_collection(collections)
