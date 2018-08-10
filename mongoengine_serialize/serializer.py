@@ -45,7 +45,7 @@ class Serialize:
             return collection, None
 
     def __serialize_collection(self, collections):
-        if isinstance(collections, QuerySet) or isinstance(collections, list):
+        if isinstance(collections, (QuerySet, list, tuple)):
             return [self.__serialize_collection(_) for _ in collections]
         else:
             type_of_mongo, type_of_raw = self.__serialize_type_of(collections)
@@ -63,10 +63,11 @@ class Serialize:
             new_collection = dict()
             for index, collection in enumerate(collections.items()):
                 key, value = collection
-                raw_collection = getattr(raw, self.__get_raw_name(key), collection)
-                if isinstance(value, list):
+                # if no raw passed. get the raw collection in class level attribute as default value
+                raw_collection = getattr(raw, self.__get_raw_name(key), self.__raw_collections)
+                if isinstance(value, (list, tuple)):
                     serialized_list = list()
-                    for raw_col_item in raw_collection:
+                    for raw_col_item in raw_collection[key]:
                         type_off_mongo, type_off_raw = self.__serialize_type_of(raw_col_item)
                         filtered = self.__filter_serialize(type_off_mongo, type_off_raw)
                         serialized_list.append(filtered)
@@ -79,7 +80,10 @@ class Serialize:
                         new_key, new_value = self.__attribute_serialize(key, value)
                         new_collection.update(self.__serialize(new_key, new_value, raw_collection))
                     else:
-                        print(self.__serialize_collection(raw_collection))
+                        # TODO:: repeat for now. will do deep serialization in the future
+                        new_key, new_value = self.__attribute_serialize(key, value)
+                        new_collection.update(self.__serialize(new_key, new_value, raw_collection))
+                        # print(self.__serialize_collection(raw_collection))
                         # new_collection.update(self.__serialize(new_key, new_value, type_off_raw))
                 else:
                     new_collection.update(self.__serialize(key, value, raw_collection))
@@ -111,7 +115,7 @@ class Serialize:
             _new_dict = dict()
             for item in items.items():
                 k, v = item
-                if isinstance(v, list):
+                if isinstance(v, (list, tuple)):
                     serialized_list = self.__extract_list_to_exclude(v, *to_exclude)
                     _new_dict.update(dict.fromkeys((k,), serialized_list))
                 else:
@@ -119,7 +123,7 @@ class Serialize:
             serialized = JsonSerialized(**_new_dict)
             serialized.exclude_attributes(*to_exclude)
             return serialized.to_json()
-        if isinstance(items, list):
+        if isinstance(items, (list, tuple)):
             return [self.__extract_list_to_exclude(_, *to_exclude) for _ in items]
         else:
             return items
@@ -150,10 +154,9 @@ class Serialize:
             return collection
 
     def jsonify(self):
-        collections = self.__collections
-        if isinstance(collections, (list, tuple)):
-            return [self.__dict_jsonify(_) for _ in collections]
-        elif isinstance(collections, dict):
-            return self.__dict_jsonify(collections)
+        if isinstance(self.__collections, (list, tuple)):
+            return [self.__dict_jsonify(_) for _ in self.__collections]
+        elif isinstance(self.__collections, dict):
+            return self.__dict_jsonify(self.__collections)
         else:
-            return self.__dict_jsonify(collections)
+            return self.__dict_jsonify(self.__collections)

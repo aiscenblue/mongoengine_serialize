@@ -15,19 +15,19 @@ collection = dict({
 expected_collection = dict({
     "id": str(collection['_id']),
     "name": collection['name'],
-    "friends": list(
+    "friends": [
         dict({
             "id": str("553486125ed592a10c4e8e6c"),  # random object id of friend
             "name": str("Jeffreys Friend")
         })
-    )
+    ]
 })
 
 serialized_data = Serialize(collection).jsonify()
 
 
 def test_equal_to_expected():
-    assert serialized_data != expected_collection
+    assert serialized_data == expected_collection
 
 
 def test_should_not_has__id_key():
